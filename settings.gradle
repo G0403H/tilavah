@@ -1,0 +1,2 @@
+rootProject.name='Tajweed'
+include ':app'
