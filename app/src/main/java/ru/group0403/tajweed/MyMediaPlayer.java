@@ -1,17 +1,17 @@
-package ru.group0403.tajweed;
+package ru.group0403.tajweed.quran;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.AssetManager;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.media.MediaPlayer;
@@ -34,6 +34,20 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+
+import ru.group0403.tajweed.R;
+import ru.group0403.tajweed.Recorder.Utility.AudioPlayerDialog;
+import ru.group0403.tajweed.Recorder.Utility.AudioRecorder;
+import ru.group0403.tajweed.Recorder.Utility.MaxAmplitudeListener;
+import ru.group0403.tajweed.Recorder.Utility.TimerUpdateListener;
+
 /**
  * This class if the heart of the Application and most difficult to understand.
  * Anyway I have tried my best to write readable code.
@@ -41,6 +55,12 @@ import android.widget.Toast;
  * 
  */
 public class MyMediaPlayer extends Activity {
+
+	private static final int REQUEST_CODE = 345;
+	private String filePath;
+	private FloatingActionButton floatingActionButton,floatingActionButtonPlay;
+	private TextView timeCountText;
+
 
 	// public TextView startTimeField, endTimeField;
 	private ImageButton playButton, next, prev, repeat;
@@ -101,8 +121,6 @@ public class MyMediaPlayer extends Activity {
 	private TextView headingView, selectReciterTextView;
 	private View viewLine;
 	private ScrollView outerScrollView;
-	private static final String START_VERSE = "Select Start Verse";
-	private static final String END_VERSE = "Select End Verse";
 	private ImageButton resetButton;
 	private TextView translatioView;
 
@@ -110,9 +128,7 @@ public class MyMediaPlayer extends Activity {
 	// Translation text for each verse stored as a list.
 	private ArrayList<String> translatedTextList;
 	private PowerManager.WakeLock mWakeLock;
-	int previousTranslationLanguage;
 
-	int prevTheme = -1;
 
 	/*
 	 * This function has been overridden to tackle the changes in the setting
@@ -132,19 +148,7 @@ public class MyMediaPlayer extends Activity {
 			releaseWakeLock();
 		}
 
-		// Hiding TranslationView if selected
-		if (!MyPreferenceHandler.isTranslationAllowed(getApplicationContext())) {
-			translatioView.setVisibility(View.GONE);
-		} else {
-			if (previousTranslationLanguage != MyPreferenceHandler
-					.getTranslatedLanguage(getApplicationContext())) {
-				previousTranslationLanguage = MyPreferenceHandler
-						.getTranslatedLanguage(getApplicationContext());
-				loadTranslationData();
-			}
-			translatioView.setVisibility(View.VISIBLE);
 
-		}
 		surahText.setTextSize(MyPreferenceHandler
 				.getArabicFontSize(getApplicationContext()));
 		if (MyPreferenceHandler.isTranslationAllowed(getApplicationContext())) {
@@ -152,14 +156,12 @@ public class MyMediaPlayer extends Activity {
 			int size = MyPreferenceHandler
 					.getTranslatedFontSize(getApplicationContext());
 
-			translatioView.setTextSize(size);
 
-			translatioView.setText(translatedTextList.get(verseNumber));
 		}
 
 		// setting media player theme
 		int theme = MyPreferenceHandler.getTheme(getApplicationContext());
-		if (theme != prevTheme) {
+		if (theme != theme) {
 			if (theme == MyPreferenceHandler.DARK_THEME) {
 				outerScrollView.setBackgroundColor(Color
 						.parseColor(CONSTANT.BLACK_BACKGROUND_COLOUR));
@@ -209,12 +211,11 @@ public class MyMediaPlayer extends Activity {
 				// mySpinner.setPopupBackgroundResource(R.drawable.white_background);
 				// startVerseSpinner.setBackgroundColor(Color.WHITE);
 				surahText.setTextColor(Color.BLACK);
-				translatioView.setTextColor(Color.BLACK);
+
 				headingView.setTextColor(Color.BLACK);
 				selectReciterTextView.setTextColor(Color.BLACK);
 				surahText.setBackgroundResource(R.drawable.text_border_white);
-				translatioView
-						.setBackgroundResource(R.drawable.text_border_white);
+
 			}
 
 		}
@@ -257,83 +258,7 @@ public class MyMediaPlayer extends Activity {
 			this.mWakeLock.release();
 	}
 
-	/*
-	 * This function traverse the translation file located in the assests folder
-	 * and populate the translatedTextList variable which stores translation
-	 * data for each verse as list.
-	 */
-	private void loadTranslationData() {
-		translatedTextList = new ArrayList<String>();
-		int language = MyPreferenceHandler
-				.getTranslatedLanguage(getApplicationContext());
 
-		String fileName = "";
-		switch (language) {
-		case MyPreferenceHandler.ENGLISH:
-			fileName = CONSTANT.ENGLISHTRANSLATED;
-			break;
-		case MyPreferenceHandler.MALAYSIAN:
-			fileName = CONSTANT.MALAYSIANTRANSLATED;
-			break;
-		case MyPreferenceHandler.INDONESIAN:
-			fileName = CONSTANT.INDONESIANTRANSLATED;
-			break;
-		case MyPreferenceHandler.HINDI:
-			fileName = CONSTANT.HINDITRANSLATED;
-			break;
-		}
-		int surahNumber = surah.getSurahNumber();
-
-		/**
-		 * These two variables are used to fastly load the translation data.
-		 * verseCountTillCrntSurahNumber has the count of no of verse before
-		 * this surah.verseCountAfterCrntSurahNumber has the verse count till
-		 * the next surah. These two variables pin point to actual line number
-		 * in the translation file which should be processed further.
-		 */
-		int verseCountTillCrntSurahNumber = 0, verseCountAfterCrntSurahNumber = 0, i;
-
-		for (i = 1; i < surahNumber; i++)
-			verseCountTillCrntSurahNumber += verseCount.get(i - 1);
-		verseCountAfterCrntSurahNumber = verseCountTillCrntSurahNumber
-				+ verseCount.get(i - 1);
-
-		AssetManager assetManager = this.getAssets();
-		InputStream is = null;
-		BufferedReader reader = null;
-		try {
-			is = assetManager.open(fileName);
-			reader = new BufferedReader(new InputStreamReader(is));
-			for (i = 0; i < verseCountAfterCrntSurahNumber; i++) {
-				String content = reader.readLine();
-				if (i < verseCountTillCrntSurahNumber)
-					continue;
-				String tmp[] = content.trim().split("\\|");
-				translatedTextList.add(tmp[2]);
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			if (is != null) {
-				try {
-					is.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			if (reader != null) {
-				try {
-					reader.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-
-	}
 
 	/*
 	 * Sets looping if not or vice versa and change the repeat icon accordingly
@@ -541,7 +466,7 @@ public class MyMediaPlayer extends Activity {
 			mediaPlayer.prepare();
 			String textData = surah.getSurahText(verseNumber);
 			surahText.setTypeface(Typeface.createFromAsset(getAssets(),
-					"Roboto-Regular.ttf"));
+					"font2.otf"));
 			surahText.setText(textData);
 
 			surahText.setTextSize(MyPreferenceHandler
@@ -612,6 +537,7 @@ public class MyMediaPlayer extends Activity {
 
 	}
 
+	@SuppressLint("InvalidWakeLockTag")
 	private void initiliazeVaraibles() throws IllegalArgumentException,
 			IllegalStateException, IOException {
 		surahText = (TextView) findViewById(R.id.media_player_text_view);
@@ -620,7 +546,7 @@ public class MyMediaPlayer extends Activity {
 		prev = (ImageButton) findViewById(R.id.media_player_prev);
 		repeat = (ImageButton) findViewById(R.id.media_player_repeat);
 		resetButton = (ImageButton) findViewById(R.id.media_player_restart);
-		translatioView = (TextView) findViewById(R.id.media_player_translation_view);
+
 		seekbar = (SeekBar) findViewById(R.id.media_player_seek);
 		startVerseSpinner = (Spinner) findViewById(R.id.media_player_start_verse_spinner);
 		endVerseSpinner = (Spinner) findViewById(R.id.media_player_end_verse_spinner);
@@ -640,10 +566,6 @@ public class MyMediaPlayer extends Activity {
 				+ CONSTANT.BISMILLAH;
 		headingView.setText(text);
 
-		// previous translation language to keep track of
-		previousTranslationLanguage = MyPreferenceHandler
-				.getTranslatedLanguage(getApplicationContext());
-		loadTranslationData();
 
 		initializeReciterSpinner();
 
@@ -670,7 +592,7 @@ public class MyMediaPlayer extends Activity {
 
 		initializeSpinnerAndSeekbar();
 
-		// setSurahImage(imageFile);
+		//setSurahImage(imageFile);
 		// play();
 
 	}
@@ -678,7 +600,7 @@ public class MyMediaPlayer extends Activity {
 	private void initializeSpinnerAndSeekbar() {
 		// setting startVerse spinner
 		List<String> startVerseList = new ArrayList<String>();
-		startVerseList.add(START_VERSE);
+		startVerseList.add(getString(R.string.ayat1));
 		for (int i = 1; i <= endVerse + 1; i++)
 			startVerseList.add(String.valueOf(i));
 		ArrayAdapter<String> startVerseAdapter = new ArrayAdapter<String>(this,
@@ -721,7 +643,7 @@ public class MyMediaPlayer extends Activity {
 
 		// setting endVerse Spinner
 		List<String> endVerseList = new ArrayList<String>();
-		endVerseList.add(END_VERSE);
+		endVerseList.add(getString(R.string.ayat2));
 		for (int i = 1; i <= endVerse + 1; i++)
 			endVerseList.add(String.valueOf(i));
 		ArrayAdapter<String> endVerseAdapter = new ArrayAdapter<String>(this,
@@ -820,7 +742,111 @@ public class MyMediaPlayer extends Activity {
 			e.printStackTrace();
 		}
 
+		floatingActionButton = findViewById(R.id.floatingActionButton_recoder);
+		floatingActionButtonPlay = findViewById(R.id.floatingActionButtonPLAY);
+
+		timeCountText = findViewById(R.id.textView_timeCount);
+
+
+
+		if(isPermission()) {
+			init();
+		}else {
+			requestPermissions();
+		}
 	}
+
+
+
+
+
+
+
+	private void init(){
+
+		filePath =getExternalCacheDir().getAbsolutePath()+"/audio.mp3";
+		final AudioRecorder audioRecorder = new AudioRecorder(MyMediaPlayer.this,filePath);
+		floatingActionButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if(!audioRecorder.isRecord){
+
+
+					audioRecorder.startRecord();
+
+					floatingActionButton.setImageResource(R.drawable.ic_stop_black_24dp);
+				}else {
+
+					audioRecorder.stopRecord();
+
+					floatingActionButton.setImageResource(R.drawable.ic_mic_black_24dp);
+				}
+			}
+		});
+		audioRecorder.setMaxAmplitudeListener(new MaxAmplitudeListener() {
+			@Override
+			public void getMaxAmplitude(int amplitude) {
+
+			}
+		},50);
+		audioRecorder.setTimerUpdateListener(new TimerUpdateListener() {
+			@Override
+			public void onTimeChange(long time) {
+				String timeCount = new SimpleDateFormat("mm:ss").format(time);
+				timeCountText.setText(timeCount);
+			}
+		});
+
+		floatingActionButtonPlay.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+
+				if (audioRecorder.isSave && !audioRecorder.isRecord) {
+					AudioPlayerDialog audioPlayerDialog = new AudioPlayerDialog(MyMediaPlayer.this,filePath);
+					audioPlayerDialog.show();
+				}else {
+					Toast.makeText(MyMediaPlayer.this, "Сначала приостановите запись", Toast.LENGTH_SHORT).show();
+				}
+			}
+		});
+
+	}
+
+	private boolean isPermission(){
+		if ((ContextCompat.checkSelfPermission(MyMediaPlayer.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+				&&
+				(ContextCompat.checkSelfPermission(MyMediaPlayer.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+				&&
+				(ContextCompat.checkSelfPermission(MyMediaPlayer.this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED)
+		) {
+			return true;
+		}else {
+			return  false;
+		}
+	}
+	private void requestPermissions(){
+		if (!isPermission()){
+			ActivityCompat.requestPermissions(MyMediaPlayer.this,new String[]{
+					Manifest.permission.READ_EXTERNAL_STORAGE,
+					Manifest.permission.WRITE_EXTERNAL_STORAGE,
+					Manifest.permission.RECORD_AUDIO,
+			},REQUEST_CODE);
+		}
+	}
+
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+		if(requestCode ==REQUEST_CODE){
+			if(isPermission()) {
+				init();
+			}else {
+				requestPermissions();
+			}
+		}
+	}
+
+
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -830,12 +856,12 @@ public class MyMediaPlayer extends Activity {
 			Intent intent = new Intent(this, Settings.class);
 			startActivity(intent);
 			break;
-		case R.id.menu_about_us:
-			MyDialogBuilder.buildAboutUsDialog(this);
-			break;
+
 		}
 		return super.onOptionsItemSelected(item);
 	}
+
+
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
