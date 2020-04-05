@@ -1,4 +1,4 @@
-package ru.group0403.tajweed;
+package ru.group0403.tajweed.quran;
 
 import java.util.ArrayList;
 
@@ -17,12 +17,14 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import ru.group0403.tajweed.R;
 
-/**Класс адаптера расширяется с помощью BaseAdapter и реализуется с помощью OnClickListener 
+
+/**Класс адаптера расширяется с помощью BaseAdapter и реализуется с помощью OnClickListener
 */
 public class CustomAdapter extends BaseAdapter implements OnClickListener {
 
-	/** 
+    /**
 	* Объявите используемые переменные
 	*/
 	private Activity activity;
@@ -31,6 +33,11 @@ public class CustomAdapter extends BaseAdapter implements OnClickListener {
 	public Resources res;
 	int i = 0;
 
+	public interface ListEvent{
+        void onDownloadClick(Surah surah);
+        void onDeleteClick(Surah surah);
+    }
+    public ListEvent listEventListener;
 	/**
 	* Конструктор CustomAdapter
 	*/
@@ -86,10 +93,10 @@ public class CustomAdapter extends BaseAdapter implements OnClickListener {
 	}
 
 	/**
-	* Зависит от размера данных, вызываемых для каждой строки. Создайте каждую строку ListView. 
+	* Зависит от размера данных, вызываемых для каждой строки. Создайте каждую строку ListView.
 	*/
 	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
+	public View getView(int position, final View convertView, ViewGroup parent) {
 
 		View vi = convertView;
 		ViewHolder holder;
@@ -112,19 +119,19 @@ public class CustomAdapter extends BaseAdapter implements OnClickListener {
 		// Я мог бы написать базовую математическую формулу для расчета экстрамаргина.
         // Но в этом случае человек, читающий код, не поймет его лучше.
         // Поэтому я разделил на маленький, HD, полный ... экран.
-		
+
 		if (densityDpi <=1) // Для маленького экрана
 			extramargin = (int) (densityDpi * 20.0);
-		
+
 		else if(densityDpi<=2) // Для экрана HD
 			extramargin = (int) (densityDpi * 35.0);
-		
+
 		else if(densityDpi<=3) // Для более чем HD экрана
 			extramargin = (int) (densityDpi * 55.0);
-		
+
 		else if(densityDpi<=4) //Для полного экрана HD
 			extramargin=(int) (densityDpi*70.0);
-		
+
 		else  // Для ультра HD экрана
 			extramargin=(int ) (densityDpi*85.0);
 
@@ -140,7 +147,7 @@ public class CustomAdapter extends BaseAdapter implements OnClickListener {
 			vi = inflater.inflate(R.layout.home_page_row, null);
 
 			/**
-			* Просмотр объекта Holder для содержания элементов файла tabitem.xml 
+			* Просмотр объекта Holder для содержания элементов файла tabitem.xml
 			*/
 
 			holder = new ViewHolder();
@@ -158,32 +165,32 @@ public class CustomAdapter extends BaseAdapter implements OnClickListener {
 
 				@Override
 				public void onClick(View view) {
-					ViewHolder myHolder = (ViewHolder) view.getTag();
-					MyDialogBuilder.buildDeleteSurah(activity,
-							data.get(myHolder.position));
-
+                    if (listEventListener!=null) {
+                        ViewHolder myHolder = (ViewHolder) view.getTag();
+                        listEventListener.onDeleteClick(data.get(myHolder.position));
+                    }
 				}
 			});
 			holder.downloadButton.setOnClickListener(new OnClickListener() {
 
 				@Override
 				public void onClick(View view) {
-
-					ViewHolder myHolder = (ViewHolder) view.getTag();
-					MyDialogBuilder.buildDownloadDialog(activity,
-							data.get(myHolder.position));
+                    if(listEventListener!=null){
+                        ViewHolder myHolder = (ViewHolder) view.getTag();
+                        listEventListener.onDownloadClick(data.get(myHolder.position));
+                    }
 				}
 			});
 			setTheme(holder);
 			/**
-			* Установите держатель с LayoutInflater 
+			* Установите держатель с LayoutInflater
 			*/
 			vi.setTag(holder);
 		} else
 			holder = (ViewHolder) vi.getTag();
 
 		/**
-		* Получить каждый объект Model от Arraylist 
+		* Получить каждый объект Model от Arraylist
 		*/
 		Surah name = data.get(position);
 
