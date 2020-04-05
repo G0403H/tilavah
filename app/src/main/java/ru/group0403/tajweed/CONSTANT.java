@@ -1,10 +1,10 @@
-package ru.group0403.tajweed;
+package ru.group0403.tajweed.quran;
 /**
  *Этот файл содержит большую часть постоянной переменной, используемой в проекте.
  */
 public class CONSTANT {
 
-	public static final String APPLICATIONNAME = "SurahMemorizer";
+	public static final String APPLICATIONNAME = "QuranTajweed0403";
 	public static final String APPLICATIONROOTDIRECTORYLOCATION = APPLICATIONNAME;
 	public static final String AUDIODIRECTORYNAME = "Audio";
 	public static final String AUDIODIRECTORYLOCATION = APPLICATIONROOTDIRECTORYLOCATION
@@ -13,12 +13,7 @@ public class CONSTANT {
 	// Арабские текстовые файлы
 	public static final String SIMPLEQURANTEXTNAME = "quran-simple.xml";
 
-	// Файлы переводов
 
-	public static final String ENGLISHTRANSLATED = "shahih_translation.sahih";
-	public static final String MALAYSIANTRANSLATED = "ms.basmeih";
-	public static final String INDONESIANTRANSLATED = "id.indonesian";
-	public static final String HINDITRANSLATED = "hi.farooq";
 
 	public static final String BISMILLAH = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيم";
 	public static final String RECITER_LIST = "reciterList.txt";
@@ -39,7 +34,7 @@ public class CONSTANT {
 	public static final String BLACK_DIVIDER = "#202020";
 
 	// О нас, сообщение
-	public static final String ABOUTUSMOD = "tilavah - это бесплатный Коран с открытым исходным кодом."
+	public static final String ABOUTUSMOD = "ru.group0403.tajweed.tilavah - это бесплатный Коран с открытым исходным кодом."
 			+ "Приложение для Android."
 			+ "Используется аудио от http://www.everyayah.com, "
 			+ "В то время как тексты Корана и файлы перевода Корана взяты из http://www.tanzil.net."
