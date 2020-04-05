@@ -1,4 +1,4 @@
-package ru.group0403.tajweed;
+package ru.group0403.tajweed.quran;
 
 public class HelperFunction {
 
