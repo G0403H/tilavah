@@ -1,4 +1,4 @@
-package ru.group0403.tajweed;
+package ru.group0403.tajweed.quran;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -20,6 +20,8 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.PowerManager;
 import android.util.Pair;
+
+import ru.group0403.tajweed.R;
 
 
 public class DownloadManager {
@@ -53,8 +55,8 @@ public class DownloadManager {
 					AlertDialog.THEME_HOLO_LIGHT);
 
 		}
-		mProgressDialog.setTitle("In Progress...");
-		mProgressDialog.setMessage("Loading...");
+		mProgressDialog.setTitle(myContext.getString(R.string.progress));
+		mProgressDialog.setMessage(myContext.getString(R.string.load));
 		mProgressDialog.setIndeterminate(true);
 		mProgressDialog.setCanceledOnTouchOutside(false);
 		mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
@@ -110,7 +112,7 @@ public class DownloadManager {
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
 		if (networkInfo == null || !networkInfo.isConnected()) {
-			Logger.makeToast(myContext, "Not Connected To Internet");
+			Logger.makeToast(myContext, myContext.getString(R.string.not_int));
 			return false;
 		}
 
@@ -161,10 +163,10 @@ public class DownloadManager {
 			// System.out.println(url);
 		}
 		if (previousDownload)
-			mProgressDialog.setTitle("Resuming previous download "
+			mProgressDialog.setTitle(myContext.getString(R.string.pfdssc)
 					+ surah.getName());
 		else
-			mProgressDialog.setTitle("Downloading " + surah.getName());
+			mProgressDialog.setTitle(myContext.getString(R.string.gdsccss) + surah.getName());
 
 		final MyAsyncTask async = new MyAsyncTask();
 		async.execute(UrlListWithNames);
@@ -208,9 +210,9 @@ public class DownloadManager {
 			// rounding downloadSpeed to two digits
 			downloadSpeed = (float) Math.round(downloadSpeed * 100)
 					/ (float) 100;
-			mProgressDialog.setMessage("Loading " + (downloadedItems + 1) + "/"
-					+ noOfUrls + "  Speed: " + String.valueOf(downloadSpeed)
-					+ "KB/s" + "  Size: " + String.valueOf(size) + "MB");
+			mProgressDialog.setMessage(myContext.getString(R.string.loaddd) + (downloadedItems + 1) + "/"
+					+ noOfUrls + myContext.getString(R.string.speed) + String.valueOf(downloadSpeed)
+					+ "KB/s" + myContext.getString(R.string.tdsize) + String.valueOf(size) + "MB");
 			mProgressDialog.setProgress(progress[0]);
 		}
 
@@ -255,7 +257,7 @@ public class DownloadManager {
 
 			// If network connectivity is lost in between
 			if (networkInfo == null || !networkInfo.isConnected()) {
-				ErrorMsg = "Not Connected To Internet";
+				ErrorMsg = myContext.getString(R.string.hdsfs);
 				return null;
 			}
 			BufferedInputStream bis = null;
@@ -271,7 +273,7 @@ public class DownloadManager {
 				int bytesRead = 0;
 				while ((bytesRead = bis.read(buffer)) > 0) {
 					if (!running) {
-						ErrorMsg = "Downloading Cancelled";
+						ErrorMsg = myContext.getString(R.string.dssdfddf);
 						return null;
 					}
 					publishBytes += bytesRead;
@@ -291,7 +293,7 @@ public class DownloadManager {
 				ErrorMsg = "MalFormed URL";
 				e.printStackTrace();
 			} catch (IOException e) {
-				ErrorMsg = "Download Failed";
+				ErrorMsg = myContext.getString(R.string.fgdggdg);
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} finally {
@@ -336,7 +338,7 @@ public class DownloadManager {
 				done = true;
 			} catch (IOException e) {
 
-				ErrorMsg = "Failed to save file";
+				ErrorMsg = myContext.getString(R.string.hdgsff);
 				e.printStackTrace();
 
 			} finally {
@@ -361,7 +363,7 @@ public class DownloadManager {
 			mWakeLock.release();
 			mProgressDialog.dismiss();
 			if (result == CONSTANT.DOWNLOAD_SUCCESSFUL) {
-				Logger.makeToast(myContext, "Download SuccessFul");
+				Logger.makeToast(myContext, myContext.getString(R.string.hjfdhd));
 			} else {
 				Logger.makeToast(myContext, result);
 
@@ -380,7 +382,7 @@ public class DownloadManager {
 			noOfUrls = arg[0].second;
 			for (Pair<String, String> pair : arg[0].first) {
 				if (!running) {
-					return "Downloading Cancelled";
+					return myContext.getString(R.string.jhdh);
 				}
 				downloadingStartTime = System.nanoTime();
 				byte[] result = downloadFile(pair.first);
