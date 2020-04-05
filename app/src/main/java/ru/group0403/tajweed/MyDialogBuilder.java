@@ -1,4 +1,4 @@
-package ru.group0403.tajweed;
+package ru.group0403.tajweed.quran;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -18,6 +18,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+
+import ru.group0403.tajweed.R;
 
 /**
  * This class handles all the dialog used in this application execpt one Theme switching dialog.
@@ -104,115 +106,6 @@ public class MyDialogBuilder {
 
 	}
 
-	public static void buildTranslationFontDialog(final Context myContext) {
-
-		ArrayList<String> items = new ArrayList<String>();
-
-		items.add("English (Saheeh International)");
-		items.add("Hindi (Muhammad Farooq & Ahmed) ");
-		items.add("Indonesian 	(Bahasa Indonesia)");
-		items.add("Malysian (Basmeih)");
-		int checkedItem = MyPreferenceHandler.getTranslatedLanguage(myContext);
-		// Where we track the selected items
-		AlertDialog.Builder builder = getBuilder(myContext);
-		// Set the dialog title
-		builder.setTitle("Language")
-		// Specify the list array, the items to be selected by default (null for
-		// none),
-		// and the listener through which to receive callbacks when items are
-		// selected
-				.setSingleChoiceItems(
-						items.toArray(new CharSequence[items.size()]),
-						checkedItem, new DialogInterface.OnClickListener() {
-
-							@Override
-							public void onClick(DialogInterface dialog,
-									int which) {
-
-								if (which == 0)
-									MyPreferenceHandler.setTranslatedLanguage(
-											myContext,
-											MyPreferenceHandler.ENGLISH);
-								else if (which == 1)
-									MyPreferenceHandler.setTranslatedLanguage(
-											myContext,
-											MyPreferenceHandler.HINDI);
-								else if (which == 2)
-									MyPreferenceHandler.setTranslatedLanguage(
-											myContext,
-											MyPreferenceHandler.INDONESIAN);
-								else
-									MyPreferenceHandler.setTranslatedLanguage(
-											myContext,
-											MyPreferenceHandler.MALAYSIAN);
-
-								dialog.dismiss();
-
-							}
-						})
-				// Set the action buttons
-				.setNegativeButton(R.string.cancel,
-						new DialogInterface.OnClickListener() {
-							@Override
-							public void onClick(DialogInterface dialog, int id) {
-								dialog.dismiss();
-							}
-						});
-
-		builder.show();
-
-	}
-
-	
-	public static void buildTranslationFontSizeDialog(final Context myContext) {
-
-		final ArrayList<String> items = new ArrayList<String>();
-		items.add("14");
-		items.add("16");
-		items.add("18");
-		items.add("20");
-		items.add("22");
-		items.add("24");
-
-		int checkedItem = searchPosition(items,
-				MyPreferenceHandler.getTranslatedFontSize(myContext));
-		// Where we track the selected items
-		AlertDialog.Builder builder = getBuilder(myContext);
-		// Set the dialog title
-		builder.setTitle("Translation Font Size")
-		// Specify the list array, the items to be selected by default (null for
-		// none),
-		// and the listener through which to receive callbacks when items are
-		// selected
-				.setSingleChoiceItems(
-						items.toArray(new CharSequence[items.size()]),
-						checkedItem, new DialogInterface.OnClickListener() {
-
-							@Override
-							public void onClick(DialogInterface dialog,
-									int which) {
-
-								MyPreferenceHandler.setTranslatedFontSize(
-										myContext, Integer.parseInt(items.get(
-												which).trim()));
-								dialog.dismiss();
-
-							}
-						})
-				// Set the action buttons
-				.setNegativeButton(R.string.cancel,
-						new DialogInterface.OnClickListener() {
-							@Override
-							public void onClick(DialogInterface dialog, int id) {
-								dialog.dismiss();
-							}
-						});
-
-		builder.create();
-
-		builder.show();
-
-	}
 
 	public static void buildArbicFontSizeDialog(final Context myContext) {
 
@@ -226,6 +119,8 @@ public class MyDialogBuilder {
 		items.add("36");
 		items.add("38");
 		items.add("40");
+		items.add("45");
+		items.add("50");
 
 		int checkedItem = searchPosition(items,
 				MyPreferenceHandler.getArabicFontSize(myContext));
@@ -275,13 +170,13 @@ public class MyDialogBuilder {
 
 		if (reciterList.size() == 0) {
 			Logger.makeToast(myContext, mySurah.getName()
-					+ " does not have any audio file");
+					+ myContext.getString(R.string.dssd));
 			return;
 		}
 
 		AlertDialog.Builder builderSingle = getBuilder(myContext);
 		// builderSingle.setIcon(R.drawable.ic_launcher);
-		builderSingle.setTitle("Select reciter to delete:  "
+		builderSingle.setTitle(myContext.getString(R.string.hhff)
 				+ mySurah.getName());
 		final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
 				myContext, android.R.layout.select_dialog_singlechoice) {
@@ -334,13 +229,13 @@ public class MyDialogBuilder {
 						}
 						if (count == 0)
 							Logger.makeToast(myContext,
-									"Files couldn't be deleted");
+									myContext.getString(R.string.sdsd));
 						else if (count < all.length)
 							Logger.makeToast(myContext,
-									"Some Files couldn't be deleted");
+									myContext.getString(R.string.dfdf));
 						else
 							Logger.makeToast(myContext,
-									"All Files Have been successfully deleted");
+									myContext.getString(R.string.dsdc));
 
 					}
 				});
@@ -405,7 +300,7 @@ public class MyDialogBuilder {
 
 		AlertDialog.Builder builderSingle = getBuilder(context);
 		builderSingle.setCancelable(false);
-		builderSingle.setMessage(CONSTANT.REPEAT_MESSAGE);
+		builderSingle.setMessage(R.string.dfs);
 		builderSingle.setNegativeButton("Got It",
 				new DialogInterface.OnClickListener() {
 
@@ -420,7 +315,7 @@ public class MyDialogBuilder {
 	public static void buildRestartDialog(Context context) {
 		AlertDialog.Builder builderSingle = getBuilder(context);
 		builderSingle.setCancelable(false);
-		builderSingle.setMessage(CONSTANT.RESTART_MESSAGE);
+		builderSingle.setMessage(R.string.dss);
 		builderSingle.setNegativeButton("Got It",
 				new DialogInterface.OnClickListener() {
 
